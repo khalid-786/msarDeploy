@@ -1,0 +1,43 @@
+version: "3.9"
+
+services:
+
+  sqlserver:
+    image: mcr.microsoft.com/mssql/server:2022-latest
+    container_name: msar-sql
+    environment:
+      SA_PASSWORD: "Your_Strong_Pass123!"
+      ACCEPT_EULA: "Y"
+    ports:
+      - "1433:1433"
+    volumes:
+      - sql_data:/var/opt/mssql
+    restart: always
+
+  api:
+    build:
+      context: ../MsarBackEnd
+      dockerfile: Dockerfile
+    container_name: msar-api
+    ports:
+      - "5080:80"
+    depends_on:
+      - sqlserver
+    environment:
+      ASPNETCORE_ENVIRONMENT: "Production"
+      ConnectionStrings__DefaultConnection: "Server=msar-sql;Database=MsarDb;User Id=sa;Password=Your_Strong_Pass123!;TrustServerCertificate=True;"
+    restart: always
+
+  frontend:
+    build:
+      context: ../MsarFrontEnd
+      dockerfile: Dockerfile
+    container_name: msar-front
+    ports:
+      - "80:80"
+    depends_on:
+      - api
+    restart: always
+
+volumes:
+  sql_data:
