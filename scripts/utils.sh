@@ -1,23 +1,32 @@
+
 #!/bin/bash
+separator(){
 
-set -euo pipefail
-
-command_exists() {
-
-    command -v "$1" >/dev/null 2>&1
+echo "------------------------------------------------"
 
 }
 
-require_command() {
+require_command(){
 
-    if ! command_exists "$1"
+command -v "$1" >/dev/null 2>&1 || {
 
-    then
+log_error "$1 is not installed."
 
-        echo "$1 is not installed."
+exit 1
 
-        exit 1
+}
 
-    fi
+}
+
+file_exists(){
+
+if [ ! -f "$1" ]
+then
+
+log_error "$1 not found."
+
+exit 1
+
+fi
 
 }

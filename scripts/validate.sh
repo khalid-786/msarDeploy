@@ -1,21 +1,28 @@
 #!/bin/bash
 
-set -euo pipefail
+validate_environment(){
 
-source scripts/logger.sh
+log_info "Validating environment..."
 
-validate_environment() {
+require_command docker
 
-    log_info "Validating Environment"
+require_command docker-compose
 
-    require_command docker
+require_command curl
 
-    require_command curl
+require_command jq
 
-    require_command git
+file_exists "$COMPOSE_FILE"
 
-    require_command jq
+if [ ! -f env/.env.production ]
+then
 
-    log_success "Environment Validated"
+log_error ".env.production not found."
+
+exit 1
+
+fi
+
+log_success "Environment validated."
 
 }

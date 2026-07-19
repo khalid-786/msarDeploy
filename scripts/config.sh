@@ -1,19 +1,51 @@
 #!/bin/bash
 
-set -euo pipefail
+#############################################
+# Images
+#############################################
 
-CONFIG_FILE="config/deployment.conf"
+BACKEND_IMAGE=${BACKEND_IMAGE}
+FRONTEND_IMAGE=${FRONTEND_IMAGE}
 
-load_configuration() {
+#############################################
+# Containers
+#############################################
 
-    if [ ! -f "$CONFIG_FILE" ]; then
+BACKEND_CONTAINER="msar-api"
+FRONTEND_CONTAINER="msar-frontend"
 
-        echo "Configuration file not found."
+SQL_CONTAINER="msar-sql"
 
-        exit 1
+RABBIT_CONTAINER="msar-rabbit"
 
-    fi
+#############################################
+# Compose
+#############################################
 
-    source "$CONFIG_FILE"
+COMPOSE_FILE="compose/docker-compose.yml"
 
-}
+#############################################
+# Health URLs
+#############################################
+
+API_HEALTH_URL="http://localhost:5080/health"
+
+FRONTEND_HEALTH_URL="http://localhost"
+
+#############################################
+# Logs
+#############################################
+
+LOG_DIRECTORY="./logs"
+
+mkdir -p "$LOG_DIRECTORY"
+
+LOG_FILE="$LOG_DIRECTORY/deploy.log"
+
+#############################################
+# Retry
+#############################################
+
+MAX_RETRIES=5
+
+RETRY_DELAY=2

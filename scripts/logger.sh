@@ -1,45 +1,41 @@
 #!/bin/bash
 
-set -euo pipefail
+timestamp(){
 
-LOG_FILE="logs/deploy.log"
-
-mkdir -p logs
-
-timestamp() {
-
-    date +"%Y-%m-%d %H:%M:%S"
+date +"%Y-%m-%d %H:%M:%S"
 
 }
 
-log_info() {
+write_log(){
 
-    echo "$(timestamp) [INFO ] $1"
+LEVEL=$1
 
-    tee -a "$LOG_FILE"
+MESSAGE=$2
 
-}
-
-log_warn() {
-
-    echo "$(timestamp) [WARN ] $1"
-
-    tee -a "$LOG_FILE"
+echo "$(timestamp) [$LEVEL] $MESSAGE" | tee -a "$LOG_FILE"
 
 }
 
-log_error() {
+log_info(){
 
-    echo "$(timestamp) [ERROR] $1"
-
-    tee -a "$LOG_FILE"
+write_log INFO "$1"
 
 }
 
-log_success() {
+log_warn(){
 
-    echo "$(timestamp) [ OK  ] $1"
+write_log WARN "$1"
 
-    tee -a "$LOG_FILE"
+}
+
+log_error(){
+
+write_log ERROR "$1"
+
+}
+
+log_success(){
+
+write_log SUCCESS "$1"
 
 }

@@ -1,36 +1,98 @@
 #!/bin/bash
 
-set -e
+set -euo pipefail
 
-if [ $# -ne 2 ]; then
-    echo ""
-    echo "Usage:"
-    echo "./rollback.sh <backend_version> <frontend_version>"
-    echo ""
-    echo "Example:"
-    echo "./rollback.sh v1.0.3 v1.0.3"
-    exit 1
-fi
+source scripts/logger.sh
+source scripts/config.sh
 
-BACKEND_VERSION=$1
-FRONTEND_VERSION=$2
+###############################################
+# Restore .env
+###############################################
 
-echo ""
-echo "Rolling Back..."
-echo ""
+restore_environment() {
 
-sed -i "s/^BACKEND_VERSION=.*/BACKEND_VERSION=${BACKEND_VERSION}/" .env
-sed -i "s/^FRONTEND_VERSION=.*/FRONTEND_VERSION=${FRONTEND_VERSION}/" .env
+LATEST_ENV=$(ls -t backup/env/.env.production.* | head -1)
 
-docker compose \
--f docker-compose.yml \
--f docker-compose.prod.yml \
-pull
+cp "$LATEST_ENV" env/.env.production
 
-docker compose \
--f docker-compose.yml \
--f docker-compose.prod.yml \
-up -d
+log_success ".env restored."
 
-echo ""
-echo "Rollback Completed Successfully."
+}
+
+###############################################
+# Restore compose
+###############################################
+
+restore_compose() {
+
+LATEST_COMPOSE=$(ls -t backup/compose/docker-compose.yml.* | head -1)
+
+LATEST_PROD=$(ls -t backup/compose/docker-compose.prod.yml.* | head -1)
+
+cp "$LATEST_COMPOSE" compose/docker-compose.yml
+
+cp "$LATEST_PROD" compose/docker-compose.prod.yml
+
+log_success "Compose restored."
+
+}
+restore_database() {
+
+BACKUP=$(ls -t backup/sql/*.bak | head -1)
+
+FILE=$(basename "$BACKUP")
+
+docker cp \
+"$BACKUP" \
+msar-sql:/var/opt/mssql/$FILE
+
+docker exec msar-sql /opt/mssql-tools18/bin/sqlcmd \
+-S localhost \
+-U sa \
+-P "$SA_PASSWORD" \
+-C \
+-Q "
+ALTER DATABASE MsarDb SET SINGLE_USER WITH ROLLBACK IMMEDIATE;
+
+RESTORE DATABASE MsarDb
+FROM DISK='/var/opt/mssql/$FILE'
+WITH REPLACE;
+
+ALTER DATABASE MsarDb SET MULTI_USER;
+"
+
+log_success "Database restored."
+
+}
+restore_previous_version() {
+
+PREVIOUS=$(ls releases | sort -V | tail -2 | head -1)
+
+source releases/$PREVIOUS/version.env
+
+export BACKEND_VERSION
+
+export FRONTEND_VERSION
+
+docker compose pull
+
+docker compose up -d
+
+log_success "Previous release restored."
+
+}
+rollback() {
+
+log_warn "Deployment failed."
+
+restore_environment
+
+restore_compose
+
+restore_previous_version
+
+run_health_checks
+
+log_success "Rollback completed."
+
+}
