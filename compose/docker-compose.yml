@@ -1,0 +1,13 @@
+services:
+
+  backend:
+    image: ${BACKEND_IMAGE}
+
+  frontend:
+    image: ${FRONTEND_IMAGE}
+
+  sqlserver:
+    image: mcr.microsoft.com/mssql/server:2022-latest
+
+  rabbitmq:
+    image: rabbitmq:3-management

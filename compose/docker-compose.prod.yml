@@ -1,0 +1,115 @@
+services:
+
+  sqlserver:
+
+    container_name: msar-sql
+
+    environment:
+      ACCEPT_EULA: "Y"
+      MSSQL_PID: "Developer"
+      SA_PASSWORD: ${SA_PASSWORD}
+
+    volumes:
+      - sql_data:/var/opt/mssql
+      - ./backup:/var/opt/mssql/backup
+
+    restart: unless-stopped
+
+    healthcheck:
+      test: ["CMD-SHELL","/opt/mssql-tools18/bin/sqlcmd -S localhost -U sa -P $$SA_PASSWORD -C -Q 'SELECT 1' || exit 1"]
+      interval: 20s
+      timeout: 5s
+      retries: 10
+
+    networks:
+      - database-network
+
+  rabbitmq:
+
+    container_name: msar-rabbit
+
+    ports:
+      - "15672:15672"
+
+    environment:
+      RABBITMQ_DEFAULT_USER: ${RABBITMQ_USER}
+      RABBITMQ_DEFAULT_PASS: ${RABBITMQ_PASSWORD}
+
+    volumes:
+      - rabbitmq_data:/var/lib/rabbitmq
+
+    restart: unless-stopped
+
+    networks:
+      - backend-network
+
+  backend:
+
+    container_name: msar-api
+
+    depends_on:
+
+      sqlserver:
+        condition: service_healthy
+
+      rabbitmq:
+        condition: service_started
+
+    environment:
+
+      ASPNETCORE_ENVIRONMENT: ${ASPNETCORE_ENVIRONMENT}
+
+      ConnectionStrings__DefaultConnection: Server=msar-sql;Database=MsarDb;User Id=sa;Password=${SA_PASSWORD};TrustServerCertificate=True;
+
+      RabbitMQ__Host: msar-rabbit
+
+      RabbitMQ__User: ${RABBITMQ_USER}
+
+      RabbitMQ__Password: ${RABBITMQ_PASSWORD}
+
+    ports:
+      - "5080:80"
+
+    volumes:
+      - uploads:/app/wwwroot/Uploads
+      - logs:/app/logs
+
+    restart: unless-stopped
+
+    networks:
+      - backend-network
+      - database-network
+
+  frontend:
+
+    container_name: msar-frontend
+
+    depends_on:
+      - backend
+
+    ports:
+      - "80:80"
+
+    restart: unless-stopped
+
+    networks:
+      - frontend-network
+      - backend-network
+
+volumes:
+
+  sql_data:
+
+  rabbitmq_data:
+
+  uploads:
+
+  logs:
+
+networks:
+
+  frontend-network:
+
+  backend-network:
+
+  database-network:
