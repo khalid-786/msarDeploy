@@ -1,28 +1,50 @@
 #!/bin/bash
 
-validate_environment(){
+validate_environment() {
 
-log_info "Validating environment..."
+    log_info "Validating environment..."
 
-require_command docker
+    #############################################
+    # Required Commands
+    #############################################
 
-require_command docker-compose
+    require_command docker
+    require_command curl
+    require_command jq
 
-require_command curl
+    #############################################
+    # Docker Compose V2
+    #############################################
 
-require_command jq
+    if ! docker compose version >/dev/null 2>&1; then
+        log_error "Docker Compose Plugin is not installed."
+        exit 1
+    fi
 
-file_exists "$COMPOSE_FILE"
+    #############################################
+    # Required Files
+    #############################################
 
-if [ ! -f env/.env.production ]
-then
+    file_exists "$COMPOSE_FILE"
 
-log_error ".env.production not found."
+    if [ ! -f "env/.env.production" ]; then
+        log_error "env/.env.production not found."
+        exit 1
+    fi
 
-exit 1
+    #############################################
+    # Docker Daemon
+    #############################################
 
-fi
+    if ! docker info >/dev/null 2>&1; then
+        log_error "Docker daemon is not running."
+        exit 1
+    fi
 
-log_success "Environment validated."
+    #############################################
+    # Success
+    #############################################
+
+    log_success "Environment validated successfully."
 
 }
