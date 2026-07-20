@@ -1,21 +1,6 @@
 #!/bin/bash
 
 #############################################
-# Load Environment
-#############################################
-
-ENV_FILE="env/.env.production"
-
-if [ ! -f "$ENV_FILE" ]; then
-    echo "Environment file not found: $ENV_FILE"
-    exit 1
-fi
-
-set -a
-source "$ENV_FILE"
-set +a
-
-#############################################
 # Images
 #############################################
 
@@ -66,9 +51,3 @@ RETRY_DELAY=2
 #############################################
 
 GHCR_REGISTRY="ghcr.io"
-
-BACKEND_IMAGE="${BACKEND_IMAGE}"
-FRONTEND_IMAGE="${FRONTEND_IMAGE}"
-
-GHCR_USERNAME="${GHCR_USERNAME}"
-GHCR_TOKEN="${GHCR_TOKEN}"

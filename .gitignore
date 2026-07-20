@@ -1,5 +1,5 @@
 # Environment
-env/.env.production
+"$ENV_FILE"
 .env
 .env.*
 !.env.example

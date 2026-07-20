@@ -5,7 +5,7 @@ pull_images() {
     log_info "Pulling latest Docker images..."
 
     docker compose \
-        --env-file env/.env.production \
+        --env-file "$ENV_FILE" \
         -f "$COMPOSE_FILE" \
         pull
 
@@ -26,7 +26,7 @@ start_containers() {
     log_info "Starting containers..."
 
     docker compose \
-        --env-file env/.env.production \
+        --env-file "$ENV_FILE" \
         -f "$COMPOSE_FILE" \
         up -d
 
@@ -47,7 +47,7 @@ show_status() {
     log_info "Current containers:"
 
     docker compose \
-        --env-file env/.env.production \
+        --env-file "$ENV_FILE" \
         -f "$COMPOSE_FILE" \
         ps
 

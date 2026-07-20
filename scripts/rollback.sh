@@ -11,9 +11,9 @@
 
 # restore_environment() {
 
-# LATEST_ENV=$(ls -t backup/env/.env.production.* | head -1)
+# LATEST_ENV=$(ls -t backup/"$ENV_FILE".* | head -1)
 
-# cp "$LATEST_ENV" env/.env.production
+# cp "$LATEST_ENV" "$ENV_FILE"
 
 # log_success ".env restored."
 

@@ -5,7 +5,7 @@ validate_compose() {
     log_info "Validating Docker Compose file..."
 
     docker compose \
-        --env-file env/.env.production \
+        --env-file "$ENV_FILE" \
         -f "$COMPOSE_FILE" \
         config >/dev/null
 

@@ -15,8 +15,8 @@
 
 #     mkdir -p backup/env
 
-#     cp env/.env.production \
-#        backup/env/.env.production.$TIMESTAMP
+#     cp "$ENV_FILE" \
+#        backup/"$ENV_FILE".$TIMESTAMP
 
 #     log_success ".env backed up."
 
@@ -97,11 +97,11 @@ BACKUP_FOLDER="backups/$DATE"
 mkdir -p "$BACKUP_FOLDER"
 
 docker compose \
---env-file env/.env.production \
+--env-file "$ENV_FILE" \
 -f "$COMPOSE_FILE" \
 config > "$BACKUP_FOLDER/docker-compose.yml"
 
-cp env/.env.production \
+cp "$ENV_FILE" \
 "$BACKUP_FOLDER/.env.production"
 
 log_success "Backup created."

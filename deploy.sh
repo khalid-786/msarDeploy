@@ -9,18 +9,22 @@ set -Eeuo pipefail
 SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
 
 cd "$SCRIPT_DIR"
+###########################################################
+# Environment
+###########################################################
 
+export ENV_FILE="/root/msar/config/.env.production"
 ###########################################################
 # Load Environment
 ###########################################################
 
-if [ ! -f env/.env.production ]; then
-    echo "env/.env.production not found."
+if [ ! -f "$ENV_FILE" ]; then
+    echo ""$ENV_FILE" not found."
     exit 1
 fi
 
 set -a
-source env/.env.production
+source "$ENV_FILE"
 set +a
 
 ###########################################################

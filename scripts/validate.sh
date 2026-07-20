@@ -27,8 +27,8 @@ validate_environment() {
 
     file_exists "$COMPOSE_FILE"
 
-    if [ ! -f "env/.env.production" ]; then
-        log_error "env/.env.production not found."
+    if [ ! -f ""$ENV_FILE"" ]; then
+        log_error ""$ENV_FILE" not found."
         exit 1
     fi
 
