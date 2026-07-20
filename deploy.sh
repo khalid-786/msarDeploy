@@ -1,30 +1,143 @@
 #!/bin/bash
 
-set -euo pipefail
+set -Eeuo pipefail
 
-source scripts/config.sh
+###########################################################
+# Root Directory
+###########################################################
+
+SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
+
+cd "$SCRIPT_DIR"
+
+###########################################################
+# Load Environment
+###########################################################
+
+if [ ! -f env/.env.production ]; then
+    echo "env/.env.production not found."
+    exit 1
+fi
+
+set -a
+source env/.env.production
+set +a
+
+###########################################################
+# Load Scripts
+###########################################################
 
 source scripts/logger.sh
-
+source scripts/config.sh
 source scripts/utils.sh
-
 source scripts/retry.sh
 
+source scripts/deployment.sh
+
 source scripts/validate.sh
+
 source scripts/registry.sh
+
 source scripts/images.sh
 
-log_info "Starting Deployment Framework"
+source scripts/compose.sh
 
-separator
+source scripts/docker.sh
 
-validate_environment
-login_registry
+source scripts/health.sh
 
-check_images
+source scripts/backup.sh
 
-separator
+source scripts/rollback.sh
 
-log_success "Framework Ready"
+###########################################################
+# Error Handler
+###########################################################
 
-separator
+on_error() {
+
+    log_error "Deployment failed."
+
+    rollback
+
+    exit 1
+
+}
+
+trap on_error ERR
+
+###########################################################
+# Main
+###########################################################
+
+main() {
+
+    start_deployment
+
+    #######################################################
+    # Validation
+    #######################################################
+
+    validate_environment
+
+    #######################################################
+    # Registry
+    #######################################################
+
+    login_registry
+
+    #######################################################
+    # Images
+    #######################################################
+
+    check_images
+
+    #######################################################
+    # Backup
+    #######################################################
+    load_versions
+
+    backup_current_version
+    backup_current_state
+
+    #######################################################
+    # Compose
+    #######################################################
+
+    validate_compose
+
+    #######################################################
+    # Pull Images
+    #######################################################
+
+    pull_images
+
+    #######################################################
+    # Start Containers
+    #######################################################
+
+    start_containers
+
+    #######################################################
+    # Status
+    #######################################################
+
+    show_status
+
+    #######################################################
+    # Health Checks
+    #######################################################
+
+    wait_for_api
+
+    wait_for_frontend
+    save_current_version
+    #######################################################
+    # Success
+    #######################################################
+
+    finish_deployment
+
+}
+
+main "$@"

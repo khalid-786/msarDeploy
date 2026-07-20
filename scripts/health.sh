@@ -1,29 +1,53 @@
 #!/bin/bash
-docker_running(){
 
-docker info >/dev/null 2>&1
+wait_for_api() {
+
+    log_info "Waiting for API..."
+
+    for i in $(seq 1 "$HEALTH_RETRIES")
+    do
+
+        if curl -fs "$API_HEALTH_URL" >/dev/null
+        then
+
+            log_success "API is healthy."
+
+            return
+
+        fi
+
+        sleep "$HEALTH_DELAY"
+
+    done
+
+    log_error "API Health Check failed."
+
+    exit 1
 
 }
-verify_docker(){
 
-if docker_running
+wait_for_frontend() {
 
-then
+    log_info "Waiting for Frontend..."
 
-log_success "Docker daemon running."
+    for i in $(seq 1 "$HEALTH_RETRIES")
+    do
 
-else
+        if curl -fs "$FRONTEND_HEALTH_URL" >/dev/null
+        then
 
-log_error "Docker daemon is not running."
+            log_success "Frontend is healthy."
 
-exit 1
+            return
 
-fi
+        fi
 
-}
-verify_compose(){
+        sleep "$HEALTH_DELAY"
 
-docker compose version >/dev/null
+    done
 
-log_success "Docker Compose available."
+    log_error "Frontend Health Check failed."
+
+    exit 1
+
 }

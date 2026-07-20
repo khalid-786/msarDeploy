@@ -1,0 +1,42 @@
+#!/bin/bash
+
+STATE_DIRECTORY="./state"
+
+CURRENT_STATE="$STATE_DIRECTORY/current.env"
+
+PREVIOUS_STATE="$STATE_DIRECTORY/previous.env"
+load_versions(){
+
+source "$CURRENT_STATE"
+
+CURRENT_BACKEND_VERSION=$BACKEND_VERSION
+
+CURRENT_FRONTEND_VERSION=$FRONTEND_VERSION
+
+}
+save_current_version(){
+
+cat > "$CURRENT_STATE" <<EOF
+BACKEND_VERSION=$NEW_BACKEND_VERSION
+FRONTEND_VERSION=$NEW_FRONTEND_VERSION
+EOF
+
+}
+backup_current_version(){
+
+cp "$CURRENT_STATE" "$PREVIOUS_STATE"
+
+log_success "Current version saved."
+
+}
+restore_previous_version(){
+
+cp "$PREVIOUS_STATE" "$CURRENT_STATE"
+
+source "$CURRENT_STATE"
+
+BACKEND_IMAGE="ghcr.io/$GHCR_USERNAME/msar-api:$BACKEND_VERSION"
+
+FRONTEND_IMAGE="ghcr.io/$GHCR_USERNAME/msar-frontend:$FRONTEND_VERSION"
+
+}
