@@ -99,10 +99,10 @@ main() {
     #######################################################
     # Backup
     #######################################################
-    load_versions
+    # load_versions
 
-    backup_current_version
-    backup_current_state
+    # backup_current_version
+    # backup_current_state
 
     #######################################################
     # Compose
