@@ -59,7 +59,7 @@ jobs:
             echo "Updating Deployment Repository..."
             echo "====================================="
 
-            cd /opt/msar/msarDeploy
+            cd /root/msar/msarDeploy
 
             git fetch origin
 
