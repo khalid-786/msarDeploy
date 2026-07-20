@@ -1,38 +1,29 @@
-image_exists(){
+#!/bin/bash
 
-docker manifest inspect "$1" >/dev/null 2>&1
+check_image() {
 
-}
+    IMAGE_NAME=$1
 
-verify_image(){
+    log_info "Checking image: $IMAGE_NAME"
 
-IMAGE=$1
+    docker manifest inspect "$IMAGE_NAME" >/dev/null 2>&1
 
-if image_exists "$IMAGE"
+    if [ $? -ne 0 ]; then
 
-then
+        log_error "Image not found: $IMAGE_NAME"
 
-log_success "$IMAGE exists."
+        exit 1
 
-else
+    fi
 
-log_error "$IMAGE not found."
-
-exit 1
-
-fi
+    log_success "Image exists."
 
 }
-pull_images(){
 
-verify_image "$BACKEND_IMAGE"
+check_images() {
 
-verify_image "$FRONTEND_IMAGE"
+    check_image "$BACKEND_IMAGE"
 
-log_info "Pulling images..."
-
-$COMPOSE pull
-
-log_success "Images pulled."
+    check_image "$FRONTEND_IMAGE"
 
 }

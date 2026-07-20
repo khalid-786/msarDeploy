@@ -61,3 +61,14 @@ LOG_FILE="$LOG_DIRECTORY/deploy.log"
 
 MAX_RETRIES=5
 RETRY_DELAY=2
+#############################################
+# GitHub Container Registry
+#############################################
+
+GHCR_REGISTRY="ghcr.io"
+
+BACKEND_IMAGE="${BACKEND_IMAGE}"
+FRONTEND_IMAGE="${FRONTEND_IMAGE}"
+
+GHCR_USERNAME="${GHCR_USERNAME}"
+GHCR_TOKEN="${GHCR_TOKEN}"

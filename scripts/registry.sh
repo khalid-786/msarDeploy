@@ -1,25 +1,36 @@
 #!/bin/bash
 
-set -euo pipefail
+login_registry() {
 
-login_registry(){
+    log_info "Logging in to GitHub Container Registry..."
 
-log_info "Logging into GitHub Container Registry..."
+    #############################################
+    # Validate credentials
+    #############################################
 
-if echo "$GHCR_TOKEN" | docker login ghcr.io \
--u "$GHCR_USERNAME" \
---password-stdin
+    if [ -z "$GHCR_USERNAME" ]; then
+        log_error "GHCR_USERNAME is empty."
+        exit 1
+    fi
 
-then
+    if [ -z "$GHCR_TOKEN" ]; then
+        log_error "GHCR_TOKEN is empty."
+        exit 1
+    fi
 
-log_success "Successfully logged into GHCR."
+    #############################################
+    # Login
+    #############################################
 
-else
+    echo "$GHCR_TOKEN" | docker login "$GHCR_REGISTRY" \
+        --username "$GHCR_USERNAME" \
+        --password-stdin
 
-log_error "Failed to login into GHCR."
+    if [ $? -ne 0 ]; then
+        log_error "Failed to login to GHCR."
+        exit 1
+    fi
 
-exit 1
-
-fi
+    log_success "Successfully logged into GHCR."
 
 }
