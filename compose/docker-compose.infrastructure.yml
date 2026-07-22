@@ -1,0 +1,83 @@
+services:
+
+  ############################################################
+  # SQL Server
+  ############################################################
+
+  sqlserver:
+
+    image: mcr.microsoft.com/mssql/server:2022-latest
+
+    container_name: msar-sql
+
+    restart: unless-stopped
+
+    environment:
+      ACCEPT_EULA: "Y"
+      SA_PASSWORD: ${SA_PASSWORD}
+
+    volumes:
+      - sql_data:/var/opt/mssql
+
+    healthcheck:
+      test:
+        [
+          "CMD-SHELL",
+          "/opt/mssql-tools18/bin/sqlcmd -S localhost -U sa -P $$SA_PASSWORD -C -Q 'SELECT 1' || exit 1"
+        ]
+      interval: 20s
+      timeout: 10s
+      retries: 10
+
+    networks:
+      - msar-network
+
+  ############################################################
+  # RabbitMQ
+  ############################################################
+
+  rabbitmq:
+
+    image: rabbitmq:3-management
+
+    container_name: msar-rabbit
+
+    restart: unless-stopped
+
+    ports:
+      - "5672:5672"
+      - "15672:15672"
+
+    volumes:
+      - rabbit_data:/var/lib/rabbitmq
+
+    networks:
+      - msar-network
+  nginx:
+
+    image: nginx:alpine
+
+    container_name: msar-nginx
+
+    restart: unless-stopped
+
+    ports:
+      - "80:80"
+
+    volumes:
+      - ../nginx/nginx.conf:/etc/nginx/nginx.conf:ro
+      - ../nginx/upstream.conf:/etc/nginx/upstream.conf:ro
+
+    networks:
+      - msar-network
+networks:
+
+  msar-network:
+
+    driver: bridge
+
+volumes:
+
+  sql_data:
+
+  rabbit_data:

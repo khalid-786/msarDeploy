@@ -102,7 +102,7 @@ rollback(){
 
 log_error "Rollback started..."
 
-# restore_previous_version
+restore_previous_version
 
 log_error "Rollback finished."
 

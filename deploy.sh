@@ -35,7 +35,9 @@ source scripts/logger.sh
 source scripts/config.sh
 source scripts/utils.sh
 source scripts/retry.sh
-
+source scripts/version.sh
+source scripts/blue-green.sh
+source scripts/release.sh
 source scripts/deployment.sh
 
 source scripts/validate.sh
@@ -83,6 +85,7 @@ main() {
     #######################################################
 
     validate_environment
+    switch_environment
 
     #######################################################
     # Registry
@@ -99,10 +102,11 @@ main() {
     #######################################################
     # Backup
     #######################################################
-    # load_versions
-
-    # backup_current_version
-    # backup_current_state
+    load_versions
+    # load_release
+    backup_current_version
+    save_current_version
+    write_history
 
     #######################################################
     # Compose
@@ -120,7 +124,7 @@ main() {
     # Start Containers
     #######################################################
 
-    start_containers
+    start_target
 
     #######################################################
     # Status
@@ -135,6 +139,8 @@ main() {
     wait_for_api
 
     wait_for_frontend
+    stop_active
+    save_active_color
     save_current_version
     #######################################################
     # Success

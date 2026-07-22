@@ -30,6 +30,9 @@ COMPOSE_FILE="compose/docker-compose.yml"
 
 API_HEALTH_URL="http://localhost:5080/health"
 FRONTEND_HEALTH_URL="http://localhost"
+HEALTH_RETRIES=30
+
+HEALTH_DELAY=5
 
 #############################################
 # Logs

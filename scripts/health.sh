@@ -1,6 +1,34 @@
 #!/bin/bash
 
+#############################################
+# Resolve Health URLs
+#############################################
+
+resolve_health_urls() {
+
+    if [ "$TARGET_COLOR" = "blue" ]; then
+
+        API_HEALTH_URL="http://localhost:5081/health"
+
+        FRONTEND_HEALTH_URL="http://localhost:8081"
+
+    else
+
+        API_HEALTH_URL="http://localhost:5082/health"
+
+        FRONTEND_HEALTH_URL="http://localhost:8082"
+
+    fi
+
+}
+
+#############################################
+# API Health
+#############################################
+
 wait_for_api() {
+
+    resolve_health_urls
 
     log_info "Waiting for API..."
 
@@ -13,7 +41,6 @@ wait_for_api() {
             log_success "API is healthy."
 
             return
-
         fi
 
         sleep "$HEALTH_DELAY"
@@ -26,7 +53,13 @@ wait_for_api() {
 
 }
 
+#############################################
+# Frontend Health
+#############################################
+
 wait_for_frontend() {
+
+    resolve_health_urls
 
     log_info "Waiting for Frontend..."
 
@@ -39,7 +72,6 @@ wait_for_frontend() {
             log_success "Frontend is healthy."
 
             return
-
         fi
 
         sleep "$HEALTH_DELAY"

@@ -1,0 +1,50 @@
+services:
+
+  ############################################################
+  # Backend Green
+  ############################################################
+
+  backend-green:
+
+    image: ${BACKEND_IMAGE}
+
+    container_name: msar-api-green
+
+    restart: unless-stopped
+
+    env_file:
+      - /root/msar/config/.env.production
+
+    expose:
+      - "80"
+
+    networks:
+      - msar-network
+
+  ############################################################
+  # Frontend Green
+  ############################################################
+
+  frontend-green:
+
+    image: ${FRONTEND_IMAGE}
+
+    container_name: msar-frontend-green
+
+    restart: unless-stopped
+
+    depends_on:
+
+      backend-green:
+        condition: service_started
+
+    expose:
+      - "80"
+
+    networks:
+      - msar-network
+
+networks:
+
+  msar-network:
+    external: true
