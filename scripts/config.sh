@@ -25,6 +25,12 @@ RABBIT_CONTAINER="msar-rabbit"
 COMPOSE_FILE="compose/docker-compose.yml"
 
 #############################################
+# Monitoring
+#############################################
+
+MONITORING_COMPOSE_FILE="compose/docker-compose.monitoring.yml"
+
+#############################################
 # Health
 #############################################
 

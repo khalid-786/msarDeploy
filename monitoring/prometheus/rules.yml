@@ -1,0 +1,50 @@
+groups:
+
+- name: msar-alerts
+
+  rules:
+
+  ######################################################
+  # API Down
+  ######################################################
+
+  - alert: ApiDown
+
+    expr: up{job="msar-api"} == 0
+
+    for: 1m
+
+    labels:
+      severity: critical
+
+    annotations:
+
+      summary: "MSAR API is down"
+
+      description: "Backend API has stopped responding."
+
+  ######################################################
+  # Node Exporter Down
+  ######################################################
+
+  - alert: NodeExporterDown
+
+    expr: up{job="node-exporter"} == 0
+
+    for: 1m
+
+    labels:
+      severity: critical
+
+  ######################################################
+  # cAdvisor Down
+  ######################################################
+
+  - alert: cAdvisorDown
+
+    expr: up{job="cadvisor"} == 0
+
+    for: 1m
+
+    labels:
+      severity: critical

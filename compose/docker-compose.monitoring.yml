@@ -6,7 +6,7 @@ services:
 
   prometheus:
 
-    image: prom/prometheus:latest
+    image: prom/prometheus:${PROMETHEUS_VERSION}
 
     container_name: prometheus
 
@@ -17,11 +17,11 @@ services:
 
     volumes:
 
-      - ../monitoring/prometheus/prometheus.yml:/etc/prometheus/prometheus.yml
+      - ../monitoring/prometheus/prometheus.yml:/etc/prometheus/prometheus.yml:ro
 
-      - ../monitoring/prometheus/rules.yml:/etc/prometheus/rules.yml
+      - ../monitoring/prometheus/rules.yml:/etc/prometheus/rules.yml:ro
 
-      - prometheus_data:/prometheus
+      - ../storage/prometheus:/prometheus
 
     command:
 
@@ -31,15 +31,34 @@ services:
 
       - "--web.enable-lifecycle"
 
+    healthcheck:
+
+      test:
+        [
+          "CMD",
+          "wget",
+          "--spider",
+          "-q",
+          "http://localhost:9090/-/healthy"
+        ]
+
+      interval: 30s
+
+      timeout: 10s
+
+      retries: 5
+
     networks:
 
       - msar-network
 
-####################################################
+  ####################################################
+  # Grafana
+  ####################################################
 
   grafana:
 
-    image: grafana/grafana:latest
+    image: grafana/grafana:${GRAFANA_VERSION}
 
     container_name: grafana
 
@@ -49,29 +68,53 @@ services:
 
       - "3000:3000"
 
+    environment:
+
+      GF_SECURITY_ADMIN_USER: ${GRAFANA_ADMIN_USER}
+
+      GF_SECURITY_ADMIN_PASSWORD: ${GRAFANA_ADMIN_PASSWORD}
+
     volumes:
 
-      - grafana_data:/var/lib/grafana
+      - ../storage/grafana:/var/lib/grafana
 
       - ../monitoring/grafana/provisioning:/etc/grafana/provisioning
 
       - ../monitoring/grafana/dashboards:/var/lib/grafana/dashboards
 
-    environment:
+    depends_on:
 
-      GF_SECURITY_ADMIN_USER: admin
+      prometheus:
+        condition: service_healthy
 
-      GF_SECURITY_ADMIN_PASSWORD: admin
+    healthcheck:
+
+      test:
+        [
+          "CMD",
+          "wget",
+          "--spider",
+          "-q",
+          "http://localhost:3000/api/health"
+        ]
+
+      interval: 30s
+
+      timeout: 10s
+
+      retries: 5
 
     networks:
 
       - msar-network
 
-####################################################
+  ####################################################
+  # Node Exporter
+  ####################################################
 
   node-exporter:
 
-    image: prom/node-exporter:latest
+    image: prom/node-exporter:${NODE_EXPORTER_VERSION}
 
     container_name: node-exporter
 
@@ -99,11 +142,13 @@ services:
 
       - msar-network
 
-####################################################
+  ####################################################
+  # cAdvisor
+  ####################################################
 
   cadvisor:
 
-    image: gcr.io/cadvisor/cadvisor:latest
+    image: gcr.io/cadvisor/cadvisor:${CADVISOR_VERSION}
 
     container_name: cadvisor
 
@@ -125,10 +170,20 @@ services:
 
       - /var/lib/docker:/var/lib/docker:ro
 
+      - /dev/disk:/dev/disk:ro
+
+    command:
+
+      - "--docker_only=true"
+
+      - "--housekeeping_interval=30s"
+
     networks:
 
       - msar-network
 
+####################################################
+# Networks
 ####################################################
 
 networks:
@@ -136,11 +191,3 @@ networks:
   msar-network:
 
     external: true
-
-####################################################
-
-volumes:
-
-  prometheus_data:
-
-  grafana_data:
