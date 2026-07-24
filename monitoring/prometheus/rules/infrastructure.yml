@@ -1,0 +1,63 @@
+groups:
+
+- name: infrastructure
+
+  rules:
+
+  - alert: HighCPUUsage
+
+    expr: 100 - (avg by(instance)(rate(node_cpu_seconds_total{mode="idle"}[5m])) * 100) > 90
+
+    for: 5m
+
+    labels:
+      severity: critical
+
+    annotations:
+
+      summary: High CPU Usage
+
+      description: CPU usage is above 90%.
+
+  - alert: HighMemoryUsage
+
+    expr: (1 - (node_memory_MemAvailable_bytes / node_memory_MemTotal_bytes)) * 100 > 90
+
+    for: 5m
+
+    labels:
+      severity: critical
+
+    annotations:
+
+      summary: High Memory Usage
+
+      description: Memory usage exceeded 90%.
+
+  - alert: LowDiskSpace
+
+    expr: (node_filesystem_avail_bytes/node_filesystem_size_bytes)*100 < 15
+
+    for: 10m
+
+    labels:
+      severity: warning
+
+    annotations:
+
+      summary: Low Disk Space
+
+      description: Disk usage exceeded 85%.
+
+  - alert: NodeDown
+
+    expr: up{job="node-exporter"} == 0
+
+    for: 2m
+
+    labels:
+      severity: critical
+
+    annotations:
+
+      summary: Server Down

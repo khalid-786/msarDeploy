@@ -1,0 +1,44 @@
+groups:
+
+- name: sqlserver
+
+  rules:
+
+  - alert: SQLServerDown
+
+    expr: up{job="sqlserver"} == 0
+
+    for: 2m
+
+    labels:
+      severity: critical
+
+    annotations:
+
+      summary: SQL Server Down
+
+  - alert: HighDatabaseConnections
+
+    expr: sql_connections > 200
+
+    for: 5m
+
+    labels:
+      severity: warning
+
+    annotations:
+
+      summary: SQL Connections High
+
+  - alert: DeadlocksDetected
+
+    expr: sql_deadlocks > 0
+
+    for: 1m
+
+    labels:
+      severity: critical
+
+    annotations:
+
+      summary: SQL Deadlocks

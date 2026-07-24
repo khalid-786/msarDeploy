@@ -18,6 +18,12 @@ services:
     expose:
       - "80"
 
+    healthcheck:
+      test: ["CMD", "wget", "--spider", "-q", "http://localhost/health"]
+      interval: 30s
+      timeout: 10s
+      retries: 5
+
     networks:
       - msar-network
 
@@ -36,15 +42,26 @@ services:
     depends_on:
 
       backend-blue:
-        condition: service_started
+        condition: service_healthy
 
     expose:
       - "80"
 
+    healthcheck:
+      test: ["CMD", "wget", "--spider", "-q", "http://localhost"]
+      interval: 30s
+      timeout: 10s
+      retries: 5
+
     networks:
       - msar-network
+
+############################################################
+# Networks
+############################################################
 
 networks:
 
   msar-network:
+    name: msar-network
     external: true

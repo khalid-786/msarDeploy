@@ -1,8 +1,8 @@
 services:
 
-  ####################################################
-  # Prometheus
-  ####################################################
+####################################################
+# Prometheus
+####################################################
 
   prometheus:
 
@@ -10,18 +10,11 @@ services:
 
     container_name: prometheus
 
-    restart: unless-stopped
+    restart: always
 
     ports:
+
       - "9090:9090"
-
-    volumes:
-
-      - ../monitoring/prometheus/prometheus.yml:/etc/prometheus/prometheus.yml:ro
-
-      - ../monitoring/prometheus/rules.yml:/etc/prometheus/rules.yml:ro
-
-      - ../storage/prometheus:/prometheus
 
     command:
 
@@ -29,18 +22,21 @@ services:
 
       - "--storage.tsdb.path=/prometheus"
 
+      - "--storage.tsdb.retention.time=30d"
+
       - "--web.enable-lifecycle"
+
+    volumes:
+
+      - ../monitoring/prometheus/prometheus.yml:/etc/prometheus/prometheus.yml:ro
+
+      - ../monitoring/prometheus/rules:/etc/prometheus/rules:ro
+
+      - ../storage/prometheus:/prometheus
 
     healthcheck:
 
-      test:
-        [
-          "CMD",
-          "wget",
-          "--spider",
-          "-q",
-          "http://localhost:9090/-/healthy"
-        ]
+      test: ["CMD","wget","--spider","-q","http://localhost:9090/-/healthy"]
 
       interval: 30s
 
@@ -48,13 +44,23 @@ services:
 
       retries: 5
 
+    logging:
+
+      driver: json-file
+
+      options:
+
+        max-size: "20m"
+
+        max-file: "5"
+
     networks:
 
       - msar-network
 
-  ####################################################
-  # Grafana
-  ####################################################
+####################################################
+# Grafana
+####################################################
 
   grafana:
 
@@ -62,7 +68,7 @@ services:
 
     container_name: grafana
 
-    restart: unless-stopped
+    restart: always
 
     ports:
 
@@ -85,32 +91,26 @@ services:
     depends_on:
 
       prometheus:
+
         condition: service_healthy
 
-    healthcheck:
+    logging:
 
-      test:
-        [
-          "CMD",
-          "wget",
-          "--spider",
-          "-q",
-          "http://localhost:3000/api/health"
-        ]
+      driver: json-file
 
-      interval: 30s
+      options:
 
-      timeout: 10s
+        max-size: "20m"
 
-      retries: 5
+        max-file: "5"
 
     networks:
 
       - msar-network
 
-  ####################################################
-  # Node Exporter
-  ####################################################
+####################################################
+# Node Exporter
+####################################################
 
   node-exporter:
 
@@ -118,7 +118,7 @@ services:
 
     container_name: node-exporter
 
-    restart: unless-stopped
+    restart: always
 
     pid: host
 
@@ -142,9 +142,9 @@ services:
 
       - msar-network
 
-  ####################################################
-  # cAdvisor
-  ####################################################
+####################################################
+# cAdvisor
+####################################################
 
   cadvisor:
 
@@ -152,7 +152,7 @@ services:
 
     container_name: cadvisor
 
-    restart: unless-stopped
+    restart: always
 
     privileged: true
 
@@ -183,11 +183,145 @@ services:
       - msar-network
 
 ####################################################
+# Loki
+####################################################
+
+  loki:
+
+    image: grafana/loki:3.5.3
+
+    container_name: loki
+
+    restart: always
+
+    command:
+
+      - "-config.file=/etc/loki/loki-config.yml"
+
+    volumes:
+
+      - ../monitoring/loki/loki-config.yml:/etc/loki/loki-config.yml:ro
+
+      - ../storage/loki:/loki
+
+    ports:
+
+      - "3100:3100"
+
+    networks:
+
+      - msar-network
+
+####################################################
+# Promtail
+####################################################
+
+  promtail:
+
+    image: grafana/promtail:3.5.3
+
+    container_name: promtail
+
+    restart: always
+
+    command:
+
+      - "-config.file=/etc/promtail/promtail-config.yml"
+
+    volumes:
+
+      - ../monitoring/promtail/promtail-config.yml:/etc/promtail/promtail-config.yml:ro
+
+      - /var/lib/docker/containers:/var/lib/docker/containers:ro
+
+      - /var/run/docker.sock:/var/run/docker.sock:ro
+
+      - /etc/machine-id:/etc/machine-id:ro
+
+    depends_on:
+
+      loki:
+
+        condition: service_started
+
+    networks:
+
+      - msar-network
+
+####################################################
+# Alertmanager
+####################################################
+
+  alertmanager:
+
+    image: prom/alertmanager:v0.28.1
+
+    container_name: alertmanager
+
+    restart: always
+
+    command:
+
+      - "--config.file=/etc/alertmanager/alertmanager.yml"
+
+      - "--storage.path=/alertmanager"
+
+    ports:
+
+      - "9093:9093"
+
+    volumes:
+
+      - ../monitoring/alertmanager/alertmanager.yml:/etc/alertmanager/alertmanager.yml:ro
+
+      - ../storage/alertmanager:/alertmanager
+
+    networks:
+
+      - msar-network
+
+####################################################
+# RabbitMQ Exporter
+####################################################
+
+  rabbitmq-exporter:
+
+    image: kbudde/rabbitmq-exporter:v1.0.0
+
+    container_name: rabbitmq-exporter
+
+    restart: always
+
+    environment:
+
+      RABBIT_URL: http://rabbitmq:15672
+
+      RABBIT_USER: ${RABBITMQ_DEFAULT_USER}
+
+      RABBIT_PASSWORD: ${RABBITMQ_DEFAULT_PASS}
+
+    ports:
+
+      - "9419:9419"
+
+    depends_on:
+
+      rabbitmq:
+
+        condition: service_started
+
+    networks:
+
+      - msar-network
+
+####################################################
 # Networks
 ####################################################
 
 networks:
 
   msar-network:
+
+    name: msar-network
 
     external: true

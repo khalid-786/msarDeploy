@@ -1,0 +1,44 @@
+groups:
+
+- name: application
+
+  rules:
+
+  - alert: ApiDown
+
+    expr: up{job="api"} == 0
+
+    for: 1m
+
+    labels:
+      severity: critical
+
+    annotations:
+
+      summary: API Down
+
+  - alert: HighResponseTime
+
+    expr: histogram_quantile(0.95, rate(http_request_duration_seconds_bucket[5m])) > 1
+
+    for: 5m
+
+    labels:
+      severity: warning
+
+    annotations:
+
+      summary: Slow API Response
+
+  - alert: HighErrorRate
+
+    expr: rate(http_requests_total{status=~"5.."}[5m]) > 5
+
+    for: 5m
+
+    labels:
+      severity: critical
+
+    annotations:
+
+      summary: HTTP 500 Errors

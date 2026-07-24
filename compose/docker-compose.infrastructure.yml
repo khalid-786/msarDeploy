@@ -74,6 +74,8 @@ networks:
 
   msar-network:
 
+    name: msar-network
+
     driver: bridge
 
 volumes:

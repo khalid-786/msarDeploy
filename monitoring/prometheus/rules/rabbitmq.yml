@@ -1,0 +1,44 @@
+groups:
+
+- name: rabbitmq
+
+  rules:
+
+  - alert: RabbitMQDown
+
+    expr: up{job="rabbitmq"} == 0
+
+    for: 2m
+
+    labels:
+      severity: critical
+
+    annotations:
+
+      summary: RabbitMQ Down
+
+  - alert: QueueTooLarge
+
+    expr: rabbitmq_queue_messages > 1000
+
+    for: 5m
+
+    labels:
+      severity: warning
+
+    annotations:
+
+      summary: RabbitMQ Queue Growing
+
+  - alert: TooManyConnections
+
+    expr: rabbitmq_connections > 500
+
+    for: 5m
+
+    labels:
+      severity: warning
+
+    annotations:
+
+      summary: RabbitMQ Connections High
